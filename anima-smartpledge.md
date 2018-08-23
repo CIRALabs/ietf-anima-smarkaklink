@@ -157,14 +157,103 @@ The first assumption is that intended device owner is active and is
 present. The device owner has a smart-phone that is capable of using Wi-Fi or
 being wired into the adolescent router (AR).
 
+The smartpledge application generates a self-signed certificate with
+public/private keypair that it knows.  It may generate a unique certificate
+for each manufacturer.  This certificate is called the SelfDevID.
+
 The second assumption is that the device has a QR code printed on the outside
 of the unit, and/or provided with the packaging/documentation.  The QR code
 is as specified in section 5.3 of {{dpp}}, with the additions specified in {{qrextra}}
 
+The third assumption is that the AR, at manufacturing time, has the anchor
+for it's MASA (same assumption as for BRSKI pledge's).  In addition, like
+the BRSKI pledge, the AR has an IDevID certificate (and associated private
+key) signed by the manufacturer.
+
+The fourth assumption is that the key in the "K:" attribute {{qrextra}} is a
+different public key pair.  It MUST be different from the key used in the
+IDevID.  This key is called the DPP-Keypair.
+
+# Protocol Overview
+
+## Scan the QR code
+
+The operator of the smartphone invokes the smartpledge application, and scans
+the QR code on the AR.  The smartpledge learns the ESSID, Public-Key,
+mac-address, smartpledge URL, and link-local address of the AR.
+
+## Enroll with the manufacturer
+
+The smartpledge uses it's 3G, or other WiFi internet access to connect to the
+manufacturer with TLS.  The smartpledge does an HTTP POST to the provided URL
+using it's generated certificate as it's ClientCertificate.
+As described in {{smartpledgeenroll}}, the manufacturer MAY respond with a
+302 result code, and have the end user go through a web browser based process
+to enroll.  After that process, a redirection will occur using OAUTH2.
+
+The result should finally be a 201 result code, and at that URL is a new
+certificate signed by the manufacturer.
+
+## Connect to BRSKI join network
+
+The application then reconnects the Wi-Fi interface of the smartphone to the
+ESSID of the AR.   This involves normal 802.11 station attachment.  The ESSID
+explicitely has no WPA or other security required on it.
+
+There will be no DHCPv4.  A IPv6 Router Solicitation may elicit an answer
+(confirming the device is there), but it is acceptable for there to be no
+prefix information.  An IPv6 Neighbour Discovery is done for the IPv6
+Link-Local address of the AR.  Receipt of an answer confirms that the ESSID
+is correct and present.
+
+(XXX -- not using GRASP here. Could use GRASP, but QR code is better)
+
+## Connect to Adolescent Registrar (AR)
+
+The smartpledge application then makes a direct (no proxy) TLS connection to
+port 443 of the AR, on the IPv6 Link-Local address given.  This is as in
+section 5.1 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.   The smartpledge uses it's SelfDevID as the
+TLS ClientCertificate, as the smartpledge does not have a manufacturer signed
+IDevID.
+
+Additionally, the AR will use it's IDevID certificate as the
+ServerCertificate of the TLS conncetion.  As with other BRSKI IDevID,
+it will have a MASA URL extension, as described in {{I-D.ietf-anima-bootstrapping-keyinfra}} section 2.3.2.
+
+## Pledge Requests Voucher-Request from the Adolescent Registrar
+
+The smartpledge generates a random nonce "SPnonce".  To this is adds ???, to
+create a voucher-request challenge.
+It uses the public-key of the AR, and encrypts the challenge with it.
+
+The result is POST'ed to the new BRSKI endpoint:
+
+    /.well-known/est/requestvoucherrequest
+
+(format of this to be determined. SHOULD include SHA256 of public key)
+
+## AR processing of voucher-request, request.
+
+The AR processes this POST.  First it uses the private key that is associated
+with it's QR printed public key to decrypt the voucher-request challenge.
+Included in this challenge is a nonce, and also the link-local address of the
+smartpledge.
+
+The AR then forms a voucher-request identically to as described in section
+5.2 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.  In additoon to a randomly generated nonce for the voucher,
+it includes a new header, "voucher-challenge-nonce", which is the base64 encoded
+random SPnonce that the smartpledge sent.
+
+This voucher-request is then *returned* in the POST operation to the
+smartpledge.
+
+## Smart-Pledge connects to MASA
+
+The smartpledge application then examines the MASA URL provided in the TLS
+ServerCertificate of the AR.  The smartpledge application then 
 
 
-
-# Protocol Description
+# Protocol Details
 
 ## Quick Response Code (QR code) {#qrextra}
 
@@ -193,8 +282,15 @@ of the list.  This is consistent with the Postel Principle.
 ### The SmartPledge Attribute
 
 The *smartpledge* attribute indicates that the device is capable of the
-protocol specified in this document, and can provide additional parameters
-(TBD).
+protocol specified in this document.  The contents of the smartpledge
+attribute contains part of a URL which identifies the manufacturer of
+this device, along with a unique token enabling service access to the
+device. 
+
+Short URLs are essential to fit into typical QR code space.
+
+The smartpledge application prepends the text "https://" to the value
+provided to form the full address of the smartpledge enrollment.
 
 ### Link-Layer Address Attribute
 
@@ -214,6 +310,10 @@ absent, then it defaults to "BRSKI".
 ## Artifacts
 
 TBD
+
+# Smart Pledge enrollment with manufacturer {#smartpledgeenroll}
+
+TBD.
 
 # Security Considerations
 
