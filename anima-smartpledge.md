@@ -55,7 +55,7 @@ informative:
 This document details the mechanism used for initial enrollment by
 a smartphone into a BRSKI based enrollment system.
 
-There are two key differences in assumption from
+There are two key differences in assumption from 
 {{I-D.ietf-anima-bootstrapping-keyinfra}}: that the intended registrar has
 Internet, and that the Pledge has no user-interface.
 
@@ -70,7 +70,7 @@ Device Provisioning Protocol.
 # Introduction
 
 The problem of bootstrapping a new device is described at length in
-{{I-D.ietf-anima-bootstrapping-keyinfra}} (BRSKI).  The problem that BRSKI
+{{I-D.ietf-anima-bootstrapping-keyinfra}} (aka BRSKI).  The problem that BRSKI
 solves is the case of a smart, properly configured network with a minimum of
 network connectivity (or previously pre-previoned with nonceless vouchers),
 and a relatively stupid new device (the Pledge), which lacks a network
@@ -126,19 +126,22 @@ Access Point.
 
 The following terminology is copied from {{I-D.ietf-anima-bootstrapping-keyinfra}}
 
-enrollment: The process where a device presents key material to a network and acquires a
+enrollment:
+: The process where a device presents key material to a network and acquires a
 network specific identity. For example when a certificate signing request is presented to a
 certification authority and a certificate is obtained in
 response.
 
-pledge: The prospective device, which has an identity installed at the
-factory.
+pledge:
+: The prospective device, which has an identity installed at the factory.
 
-smartpledge: The prospective administrator device, usually a smartphone
-equipped with a QR capable camera, wifi and 3G connectivity.
+smartpledge:
+: The prospective administrator device, usually a smartphone equipped with a
+QR capable camera, wifi and 3G connectivity. 
 
-adolescent router (AR): a home router or device containing a registrar. The device does not yet
-have network connectivity, and has no administrator.
+adolescent router (AR):
+: a home router or device containing a registrar. The device does not yet
+have network connectivity, and has no administrator. 
 
 # Requirements Language {#rfc2119}
 
