@@ -1,4 +1,4 @@
-# Use of MUD artifacts in the Secure Home Gateway project
+# Bootstrapping homenet gateway trust with smartphones
 
 This is the repository for an www.ietf.org Internet Draft
 for a draft which has no WG.
