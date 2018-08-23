@@ -3,14 +3,12 @@
 This is the repository for an www.ietf.org Internet Draft
 for a draft which has no WG.
 
-This work extends https://datatracker.ietf.org/doc/draft-ietf-opsawg-mud/
-to work in a mixed environment where many devices do not yet have 
-Manufacturers aware of the process, and/or where the definitions might
-have errors or omissions.
+This work extends https://datatracker.ietf.org/doc/draft-ietf-anima-bootstrapping-keyinfra/
+to such that it can be used to bootstrap trust with a registrar that is
+offline, and will not be able to get online until there is administrative
+access to the device.
 
 ## Contributing
-
-Before submitting feedback, please familiarize yourself with our current issues list and review the [working group home page](http://datatracker.ietf.org/wg/anima/charter/). If you're new to this, you may also want to read the [Tao of the IETF](https://www.ietf.org/tao.html).
 
 Be aware that all contributions to the specification fall under the "NOTE WELL"
 terms outlined below.
