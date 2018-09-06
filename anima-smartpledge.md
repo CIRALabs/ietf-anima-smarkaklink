@@ -46,6 +46,8 @@ normative:
   iso18004:
     title: "Information technology — Automatic identification and data capture techniques — Bar code symbology — QR Codes (ISO/IEC 18004:2015)"
     target: "https://github.com/yansikeim/QR-Code/blob/master/ISO%20IEC%2018004%202015%20Standard.pdf"
+  RFC7030:
+
 informative:
   RFC4291:
   RFC7217:
@@ -157,7 +159,7 @@ SelfDevID:
 self-signed PKIX certificate.  The private key part remains always on the
 smartpledge, but like other secondary device keys, should be encrypted for
 backup
-purposes. [EDNOTE: any references to Apple or Android APIs/specifications here?]
+purposes. {EDNOTE: any references to Apple or Android APIs/specifications here?}
 
 QRkey:
 : a unique, raw ECDSA or EdDSA key pair generated in (or for) the adolescent router
@@ -200,9 +202,9 @@ IDevID.  This key is called the DPP-Keypair.
 # Protocol Overview
 
 This is the overview of the process.
-[EDNOTE: there are many details here that belong in the next section.
+{EDNOTE: there are many details here that belong in the next section.
 The goal in this section is to consisely explain the interaction among the
-components. Clearly this text currently fails in that regard]
+components. Clearly this text currently fails in that regard}
 
 ## Scan the QR code
 
@@ -288,7 +290,7 @@ QR code.
 
 In addition to the randomly generated nonce that the AR generates to place
 in the the voucher-request, into the nonce field,  it also includes the
-_SPnonce_ in a new *voucher-challenge-nonce* field. [[EDNOTE: hash of nonce?]]
+_SPnonce_ in a new *voucher-challenge-nonce* field. {EDNOTE: hash of nonce?}
 
 This voucher-request is then *returned* during the POST operation to the
 smartpledge.  (This is in constrast that in ANIMA the voucher-request is
