@@ -59,11 +59,11 @@ There are two key differences in assumption from
 {{I-D.ietf-anima-bootstrapping-keyinfra}}: that the intended registrar has
 Internet, and that the Pledge has no user-interface.
 
-The variation on BRSKI is intended to be used in the situation where the
+This variation on BRSKI is intended to be used in the situation where the
 registrar device is new out of the box and is the intended gateway to the
 Internet (such as a home gateway), but has not yet been configured.  This
 work is also intended as a transition to the Wi-Fi Alliance work on the
-Device Provisioning Protocol.
+Device Provisioning Protocol (DPP).
 
 --- middle
 
@@ -199,6 +199,11 @@ IDevID.  This key is called the DPP-Keypair.
 
 # Protocol Overview
 
+This is the overview of the process.
+[EDNOTE: there are many details here that belong in the next section.
+The goal in this section is to consisely explain the interaction among the
+components. Clearly this text currently fails in that regard]
+
 ## Scan the QR code
 
 The operator of the smartphone invokes the smartpledge application, and scans
@@ -245,8 +250,6 @@ it will have a MASA URL extension, as described in {{I-D.ietf-anima-bootstrappin
 
 ## Pledge Requests Voucher-Request from the Adolescent Registrar
 
-HERE BE DRAGONS.
-
 The smartpledge generates a random nonce _SPnonce_.  To this is adds
 SOMETHING-that-is-time-unique, to create a *voucher-request challenge*.
 This is placed in the voucher-challenge-nonce field.
@@ -285,16 +288,26 @@ QR code.
 
 In addition to the randomly generated nonce that the AR generates to place
 in the the voucher-request, into the nonce field,  it also includes the
-_SPnonce_ in a new *voucher-challenge-nonce* field.
+_SPnonce_ in a new *voucher-challenge-nonce* field. [[EDNOTE: hash of nonce?]]
 
 This voucher-request is then *returned* during the POST operation to the
 smartpledge.  (This is in constrast that in ANIMA the voucher-request is
 sent by the device to the Registrar, or the MASA)
 
+## Smartpledge validates connection
+
+The smartpledge then examines the resulting voucher-request. The smartpledge
+validates that the voucher-request is signed by the same public key as was
+seen in the TLS ServerCertificate.
+
+The smartpledge then examines the contents of the voucher-request, and looks
+for the *voucher-challenge-nonce*.  As this nonce was encrypted to the
+AR, the only way that the resulting nonce could be correct is if the correct
+private key was present on the AR to decrypt it.  Succesful verification of
+the *voucher-challenge-nonce* (or the hash of it, see below) results in the
+smartpledge moving it's end of the connection from provisional to validated.
 
 ## Smart-Pledge connects to MASA
-
-The smartpledge
 
 The smartpledge application then examines the MASA URL provided in the TLS
 ServerCertificate of the AR.  The smartpledge application then connects to
@@ -328,8 +341,74 @@ pinned-domain-cert, and the voucher-challenge-nonce that it created will also
 be present.   The smartpledge SHOULD verify the signature on the artifact,
 but may be unable to validate that the certificate used has a relationship to
 the TLS ServerCertificate used by the MASA. (This limitation exists in ANIMA
-as well)
+as well).
 
+The smartpledge will then POST the resulting voucher to the AR using the URL
+
+    /.well-known/est/voucher
+
+## Adolescent Registrar (AR) receives voucher
+
+When the AR receives the voucher, it validates that it is signed by it's
+manufacturer.  This process is the same as section 5.5.1 of
+{{I-D.ietf-anima-bootstrapping-keyinfra}}.  Note that this is the future
+Registrar that is performing what in ANIMA is a pledge operation.
+
+Inside the voucher, the pinned-domain-cert is examined. It should match the
+TLS ClientCertificate that the smartpledge used to connect.  This is the SelfDevID.
+
+At this point the AR has validated the identity of the smartpledge, and the
+AR moves it's end of the connection from provisional to validated.
+
+## Adolescent Registrar (AR) grows up
+
+The roles are now slightly changed.  The AR generates a new key pair as it's
+Domain CA key.  It MAY generate intermediate CA certificates and a seperate
+Registrar certificate, but this is discouraged for home network use.
+
+The AR is now considered a full registrar.
+
+## Smartpledge enrolls
+
+The smartpledge MUST now request the full list of CA Certificates, as
+per {{RFC7030}} section 4.1.  As the Registrar's CA certificate has just been
+generated, the smartpledge has no other way of knowing it.
+
+The smartpledge MUST now also generate a CSR request as per
+{{I-D.ietf-anima-bootstrapping-keyinfra}} section 5.8.3.
+The smartpledge MAY reuse the SelfDevID key pair for this purpose.
+(XXX - maybe there are good reasons not to reuse)
+
+The Registrar SHOULD grant administrator privileges to the smartpledge via
+the certificate that is issued.  This may be done via special attributes in
+the issued certificate, or it may pin the certificate into a database.
+Which method to use is a local matter.
+
+The EST connection MUST remain open at this point.
+
+## Validation of connection
+
+The smartpledge MUST now open a new HTTPS connection to the Registrar (AR),
+using it's newly issued certificate. (XXX should this be on a different IP, or a
+different port?  If so, how is this indicated?)
+
+The smartpledge MUST validate that the new connection has a certificate
+that is validated by the Registrar's new CA certificate.
+
+The registrar MUST validate that the smartpledge's ClientCertificate is
+validated by the Registrar's CA.  The smartpledge SHOULD perform a POST
+operation on this new connection to the
+{{I-D.ietf-anima-bootstrapping-keyinfra}} Enrollment Status Telemetry
+mechanism, see section 5.8.3.  The EST connection MAY not be closed.
+
+Should the validations above fail, then the original EST connection MUST be
+used to GET a value from the
+
+    /.well-known/est/enrollstatus
+
+from the Registrar.  The contents of this value SHOULD then be send to the
+MASA, using a POST to the enrollstatus, and including the reply from the AR
+in a new attribute, "adolescent-registrar-reason".
 
 # Protocol Details
 
@@ -391,15 +470,68 @@ absent, then it defaults to "BRSKI".
 
 ## Artifacts
 
+### Voucher-Request Challenge
+
+The smartpledge generates a random nonce _SPnonce_.  To this is adds
+SOMETHING-that-is-time-unique, to create a *voucher-request challenge*.
+This is placed in the voucher-challenge-nonce field.
+
+Using the public-key of the AR that was scanned from the QR code,
+the smartpledge encrypts the challenge using CMS (or COSE?).
+
+### Additions to Voucher-Request
+
+QUESTION: should the *voucher-challenge-nonce* be provided directly in the
+voucher-request, or should only a hash of the nonce be used?  The nonce is
+otherwise not disclosed, and a MITM on the initial TLS connection would
+get to see the nonce.  A hash of the nonce validates the nonce as easily.
+
+
+## Enrollment using EST
+
 TBD
 
 # Smart Pledge enrollment with manufacturer {#smartpledgeenroll}
 
 TBD.
 
+# Threat Analysis
+
+The following attacks have been considered.
+
+## Wrong Administrator
+
+Neighbours with similar setups wind up managing each other's network (by
+mistake).
+
+## Rogue Administrator
+
+Uninitialized networks can be adopted by 'wardrivers' who search for networks
+that have no administrator.
+
+## Attack from Internal device
+
+A compromised device inside the home can be used by an attack to take control
+of the home router.
+
+## Attack from camera enabled robot
+
+A robot (such as a home vacuum cleaner) could be compromised, and then used
+by an attacker to observe and/or scan the router QRcode.
+
+## Attack from manipulator enabled robot
+
+A robot (for instance, a toy) could be compromised, and then used
+by an attacker to push the WPA and/or factory reset button on the router.
+
+
 # Security Considerations
 
-TBD.
+Go through the list of attacks above, and explain how each has been
+mitigated.
+
+Go through the list of concerns in ANIMA and EST-RFC7030 and indicate if
+there are additional concerns, or if a concern does not apply.
 
 # IANA Considerations
 
@@ -407,7 +539,8 @@ TBD.
 
 # Acknowledgements
 
-This work was supported by the Canadian Internet Registration Authority (cira.ca).
+This work was supported by the Canadian Internet Registration Authority
+https://cira.ca/blogs/cira-labs/about-cira-labs.
 
 --- back
 
