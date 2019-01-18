@@ -429,7 +429,7 @@ follows:
              [mac “;”] [information “;”] public-key
              [";" llv6-addr ] [";" smartpledge ] [";" essid ] “;;”
     llv6-addr = "L:" 8*hex-octet
-    essid     = "E:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    essid     = "E:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
     smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
 
 While the ABNF defined in the {{dpp}} document assumes a specific order
@@ -545,4 +545,26 @@ This work was supported by the Canadian Internet Registration Authority
 https://cira.ca/blogs/cira-labs/about-cira-labs.
 
 --- back
+
+# Resulting DPP QR code specification
+
+This is a merge of the additions from section {{#qrextra}} and section 5.2.1
+of {{dpp}}:
+
+    dpp-qr = “DPP:” [channel-list “;”] [channel-list “;”]
+             [mac “;”] [information “;”] public-key
+             [";" llv6-addr ] [";" smartpledge ] [";" essid ] “;;”
+    pkex-bootstrap-info = [information]
+    channel-list = “C:” class-and-channels *(“,” class-and-channels)
+    class-and-channels = class “/” channel *(“,” channel)
+    class = 1*3DIGIT
+    channel = 1*3DIGIT
+    mac = “M:” 6hex-octet ; MAC address
+    hex-octet = 2HEXDIG
+    information = “I:” *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    public-key = “K:” *PKCHAR ; DER of ASN.1 SubjectPublicKeyInfo encoded in “base64” as per [14]
+    PKCHAR = ALPHA / DIGIT / %x2b / %x2f / %x3d
+    llv6-addr = "L:" 8*hex-octet
+    essid     = "E:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
+    smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
 
