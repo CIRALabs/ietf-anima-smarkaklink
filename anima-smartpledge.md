@@ -1,7 +1,7 @@
 ---
 title: BRSKI enrollment for Smart Pledges
 abbrev: SmartPledge
-docname: draft-richardson-anima-smartpledge-00
+docname: draft-richardson-anima-smartpledge-01
 
 # stand_alone: true
 
@@ -566,5 +566,5 @@ of {{dpp}}:
     PKCHAR = ALPHA / DIGIT / %x2b / %x2f / %x3d
     llv6-addr = "L:" 8*hex-octet
     essid     = "E:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
-    smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    smartpledge = "S:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
 
