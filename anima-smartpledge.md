@@ -35,6 +35,11 @@ author:
   org: Twelve Dot Systems
   email: faud.khan@twelvedot.com
 
+- ins: A. Joshi
+  name: Abhishek Joshi
+  org: Twelve Dot Systems
+  email: abhishek.joshi@twelvedot.com
+
 normative:
   RFC2119:
   I-D.ietf-anima-bootstrapping-keyinfra:
@@ -548,7 +553,7 @@ https://cira.ca/blogs/cira-labs/about-cira-labs.
 
 # Resulting DPP QR code specification
 
-This is a merge of the additions from section {{#qrextra}} and section 5.2.1
+This is a merge of the additions from section {{qrextra}} and section 5.2.1
 of {{dpp}}:
 
     dpp-qr = “DPP:” [channel-list “;”] [channel-list “;”]
@@ -562,9 +567,18 @@ of {{dpp}}:
     mac = “M:” 6hex-octet ; MAC address
     hex-octet = 2HEXDIG
     information = “I:” *(%x20-3A / %x3C-7E) ; semicolon not allowed
-    public-key = “K:” *PKCHAR ; DER of ASN.1 SubjectPublicKeyInfo encoded in “base64” as per [14]
+    public-key = “K:” *PKCHAR
+          ; DER of ASN.1 SubjectPublicKeyInfo encoded in
+          ; “base64” as per [14]
     PKCHAR = ALPHA / DIGIT / %x2b / %x2f / %x3d
     llv6-addr = "L:" 8*hex-octet
     essid     = "E:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
     smartpledge = "S:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
 
+# Swagger.IO definition of API
+
+This is a definition of the smartpledge to MASA API in the form of Swagger.IO format:
+
+<figure>
+INSERT_TEXT_FROM_FILE smartpledge-swagger.yaml END
+</figure>

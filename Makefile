@@ -5,7 +5,7 @@ ${DRAFT}-${VERSION}.txt: ${DRAFT}.txt
 	cp ${DRAFT}.txt ${DRAFT}-${VERSION}.txt
 	: git add ${DRAFT}-${VERSION}.txt ${DRAFT}.txt
 
-%.xml: %.md 
+%.xml: %.md smartpledge-swagger.yaml
 	kramdown-rfc2629 ${DRAFT}.md | ./insert-figures >${DRAFT}.xml
 	: git add ${DRAFT}.xml
 
