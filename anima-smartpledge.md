@@ -598,6 +598,11 @@ integrations they want to make.
 After the OAUTH2 process, the SmartPledge will be redirected back to the MASA
 and a 201 status code will be returned when successful as above.
 
+## minimal Smart Pledge enrollment
+
+A manufacturer who has not built-in any restrictions on the identity that the
+smartpledge that enrolls MAY return the same self-signed certificate that the
+smartpledge used to connect with.
 
 
 # Threat Analysis
