@@ -659,7 +659,7 @@ https://cira.ca/blogs/cira-labs/about-cira-labs.
 This is a merge of the additions from section {{qrextra}} and section 5.2.1
 of {{dpp}}:
 
-    dpp-qr = “DPP:” [channel-list “;”] [channel-list “;”]
+    dpp-qr = “DPP:” [channel-list “;”]
              [mac “;”] [information “;”] public-key
              [";" llv6-addr ] [";" smartpledge ] [";" essid ] “;;”
     pkex-bootstrap-info = [information]
