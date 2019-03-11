@@ -52,10 +52,14 @@ normative:
     title: "Information technology — Automatic identification and data capture techniques — Bar code symbology — QR Codes (ISO/IEC 18004:2015)"
     target: "https://github.com/yansikeim/QR-Code/blob/master/ISO%20IEC%2018004%202015%20Standard.pdf"
   RFC7030:
+  RFC3987:
 
 informative:
   RFC4291:
   RFC7217:
+  RFC8446:
+  RFC5077:
+  RFC6749:
 
 --- abstract
 
@@ -105,7 +109,7 @@ the device in this way.  This document is not about the situation where
 the router device is intended to belong to the ISP, but about the situation
 where the home user intends to own and control the device.
 
-## Intermittent Device connectivity
+## Intermittent Device connectivity {#disconnected}
 
 There is an additional variation which this variation solves: the case where
 there is one or more devices in a place with no immediate connectivity to a
@@ -254,18 +258,25 @@ components. Clearly this text currently fails in that regard}
 
 ## Scan the QR code
 
-The operator of the smartphone invokes the smartpledge application, and scans
-the QR code on the AR.  The smartpledge learns the ESSID, Public-Key,
-mac-address, smartpledge URL, and link-local address of the AR.
+The operator of the smartphone invokes the smarkaklink application, and scans
+the QR code on the AR.  The smartphone learns the ESSID, Public-Key,
+mac-address, smarkaklink URL, and link-local address of the AR.
 
 ## Enroll with the manufacturer
 
-The smartpledge uses it's 3G, or other WiFi internet access to connect to the
+The smartphone uses it's 3G, or other WiFi internet access to connect to the
 manufacturer with TLS.  The manufacturer is identified with the smartpledge
 URL.
 
-The smartpledge does an HTTP POST to the provided URL
-using it's generated certificate as it's ClientCertificate.
+The operator of the smartphone may need to move to another location to get
+connectivity.  It is desireable that an operator be able to scan many QR
+codes before moving, performing this operation in a batch.  There may
+be multiple devices from the same manufacturer, and the smarkalink
+application SHOUld enroll with the manufacturer a single time for all
+devices.
+
+The smartphone does an HTTP POST to the provided URL using it's generated
+certificate as it's ClientCertificate.
 As described in {{smartpledgeenroll}}, the manufacturer MAY respond with a
 302 result code, and have the end user go through a web browser based process
 to enroll.  After that process, a redirection will occur using OAUTH2.
@@ -276,37 +287,43 @@ certificate signed by the manufacturer.
 ## Connect to BRSKI join network
 
 The application then reconnects the Wi-Fi interface of the smartphone to the
-ESSID of the AR.   This involves normal 802.11 station attachment.  The ESSID
-explicitely has no WPA or other security required on it.
+ESSID of the AR.   This involves normal 802.11 station attachment.  The
+given ESSID explicitely has no WPA or other security required on it.
 
-There will be no DHCPv4.  A IPv6 Router Solicitation may elicit an answer
-(confirming the device is there), but it is acceptable for there to be no
-prefix information.  An IPv6 Neighbour Discovery is done for the IPv6
-Link-Local address of the AR.  Receipt of an answer confirms that the ESSID
-is correct and present.
+There will be no DHCPv4 on this network.  This simplifies the operation
+of the devices that are enrolling, but it also makes the network
+uninteresting to other random users that may stumble upon the open ESSID.
+
+A IPv6 Router Solicitation may elicit an answer (confirming the device is
+there), but it is acceptable for there to be no prefix information.  An IPv6
+Neighbour Discovery is done for the IPv6 Link-Local address of the AR.
+Receipt of an answer confirms that the ESSID is correct and present.
 
 (XXX -- not using GRASP here. Could use GRASP, but QR code is better)
 
 ## Connect to Adolescent Registrar (AR)
 
-The smartpledge application then makes a direct (no proxy) TLS connection to
-port 443 of the AR, on the IPv6 Link-Local address given.  This is as in
-section 5.1 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.   The smartpledge uses it's SelfDevID as the
-TLS ClientCertificate, as the smartpledge does not have a manufacturer signed
-IDevID.
+The smarkaklink application then makes a direct (no proxy) TLS connection to
+port 8443 (!XXX!) of the AR, on the IPv6 Link-Local address given.  This is
+as in section 5.1 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.   The
+smartphone uses it's SelfDevID as the TLS ClientCertificate, as the
+smartphone and smarkaklink will not have a manufacturer signed IDevID.
 
 Additionally, the AR will use it's IDevID certificate as the
 ServerCertificate of the TLS conncetion.  As with other BRSKI IDevID,
-it will have a MASA URL extension, as described in {{I-D.ietf-anima-bootstrapping-keyinfra}} section 2.3.2.
+it will have a MASA URL extension, as described in
+{{I-D.ietf-anima-bootstrapping-keyinfra}} section 2.3.2.
+
+The Adolescent Registrar acts in the role of pledge!
 
 ## Pledge Requests Voucher-Request from the Adolescent Registrar
 
-The smartpledge generates a random nonce _SPnonce_.  To this is adds
+The smartphone generates a random nonce _SPnonce_.  To this is added
 SOMETHING-that-is-time-unique, to create a *voucher-request challenge*.
 This is placed in the voucher-challenge-nonce field.
 
 Using the public-key of the AR that was scanned from the QR code,
-the smartpledge encrypts the challenge using CMS (or COSE?).
+the smartphone encrypts the challenge using CMS (or COSE?).
 
 NOTE: DPP has a round with the SHA256 of the device's key to make sure that
 the correct device has been chosen.  The TLS connection effectively provides
@@ -326,7 +343,7 @@ The resulting object is POST'ed to the new BRSKI endpoint:
 The AR processes this POST.  First it uses the private key that is associated
 with it's QR printed public key to decrypt the voucher-request challenge.
 Included in this challenge is a nonce, and also the link-local address of the
-smartpledge.
+smartphone.
 
 The AR SHOULD verify that the link-local address matches the originating
 address of the connection on which the request is received.
@@ -334,44 +351,53 @@ address of the connection on which the request is received.
 The AR then forms a voucher-request identically to as described in section
 5.2 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.  Note that the AR uses it's
 IDevID to sign the voucher-request.  This is the same key used to terminate
-the TLS connection.  It MUST be different from the public key printed in the
-QR code.
+the TLS connection.
+
+Note: It MUST be different from the public key printed in the QR code.
 
 In addition to the randomly generated nonce that the AR generates to place
 in the the voucher-request, into the nonce field,  it also includes the
 _SPnonce_ in a new *voucher-challenge-nonce* field. {EDNOTE: hash of nonce?}
 
 This voucher-request is then *returned* during the POST operation to the
-smartpledge.  (This is in constrast that in ANIMA the voucher-request is
+smartphone.  (This is in constrast that in ANIMA the voucher-request is
 sent by the device to the Registrar, or the MASA)
 
-## Smartpledge validates connection
+### Additions to Voucher-Request
 
-The smartpledge then examines the resulting voucher-request. The smartpledge
+QUESTION: should the *voucher-challenge-nonce* be provided directly in the
+voucher-request, or should only a hash of the nonce be used?  The nonce is
+otherwise not disclosed, and a MITM on the initial TLS connection would
+get to see the nonce.  A hash of the nonce validates the nonce as easily.
+
+## Smartphone validates connection
+
+The smartphone then examines the resulting voucher-request. The smartphone
 validates that the voucher-request is signed by the same public key as was
 seen in the TLS ServerCertificate.
 
-The smartpledge then examines the contents of the voucher-request, and looks
+The smartphone then examines the contents of the voucher-request, and looks
 for the *voucher-challenge-nonce*.  As this nonce was encrypted to the
 AR, the only way that the resulting nonce could be correct is if the correct
 private key was present on the AR to decrypt it.  Succesful verification of
 the *voucher-challenge-nonce* (or the hash of it, see below) results in the
-smartpledge moving it's end of the connection from provisional to validated.
+smartphone moving it's end of the connection from provisional to validated.
 
-## Smart-Pledge connects to MASA
+## Smart-Phone connects to MASA
 
-The smartpledge application then examines the MASA URL provided in the TLS
-ServerCertificate of the AR.  The smartpledge application then connects to
-that URL using it's 3G/LTE connection, taking on the role of Registrar.
+The smarkaklink application running on the smartphone then examines the MASA
+URL provided in the TLS ServerCertificate of the AR.  The smarkaklink
+application then connects to that URL using it's 3G/LTE connection, taking on
+the temporary role of Registrar.
 
-A wrapped voucher-request is formed by the smartpledge in the same
+A wrapped voucher-request is formed by the smartphone in the same
 way as described in section 5.4 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.
-The inner prior-signed-voucher-request is filled in with the voucher-request
+The prior-signed-voucher-request is filled in with the voucher-request
 that was created by the AR in the previous step.
 
-The pinned-domain-cert of this voucher-request is set to be the SelfDevID
-certificate of the smartpledge.  The voucher-request is to be signed by the
-SelfDevID.
+The proximity-registrar-cert of the wrapped voucher-request is set to be the
+SelfDevID certificate of the smartphone.  The voucher-request is to be signed
+by the SelfDevID.
 
 The voucher-request is POST'ed to the MASA using the same URL that is used
 for Registrar/MASA operation:
@@ -383,81 +409,100 @@ for Registrar/MASA operation:
 
 The MASA processing occurs as specified in section 5.5 of
 {{I-D.ietf-anima-bootstrapping-keyinfra}} as before.  The MASA MUST
-also copy the voucher-challenge-nonce into the resulting voucher.
+also copy the *voucher-challenge-nonce* into the resulting voucher.
 
 ## Smartpledge processing of voucher
 
-The smartplege will receive a voucher that contains it's IDevID as the
-pinned-domain-cert, and the voucher-challenge-nonce that it created will also
-be present.   The smartpledge SHOULD verify the signature on the artifact,
+The smartphone will receive a voucher that contains it's IDevID as the
+*pinned-domain-cert*, and the *voucher-challenge-nonce* that it created will also
+be present.   The smartphone SHOULD verify the signature on the artifact,
 but may be unable to validate that the certificate used has a relationship to
 the TLS ServerCertificate used by the MASA. (This limitation exists in ANIMA
 as well).
 
-The smartpledge will then POST the resulting voucher to the AR using the URL
+The smartphone will then POST the resulting voucher to the AR using the URL
 
     /.well-known/est/voucher
+
+If an existing TLS connection is still available, it MAY be reused.
+
+If a TLS session-resumption ticket (see {{RFC8446}} section 2.2 for TLS 1.3,
+and {{RFC5077}} for TLS 1.2) has been obtained, it SHOULD be used if the
+TLS connection needs to be rebuilt.  This is particularly useful in the
+disconnected use case explained in {{disconnected}}.
 
 ## Adolescent Registrar (AR) receives voucher
 
 When the AR receives the voucher, it validates that it is signed by it's
 manufacturer.  This process is the same as section 5.5.1 of
-{{I-D.ietf-anima-bootstrapping-keyinfra}}.  Note that this is the future
-Registrar that is performing what in ANIMA is a pledge operation.
+{{I-D.ietf-anima-bootstrapping-keyinfra}}.
+
+Again note that the AR is acting in the role of a pledge.
 
 Inside the voucher, the pinned-domain-cert is examined. It should match the
-TLS ClientCertificate that the smartpledge used to connect.  This is the SelfDevID.
+TLS ClientCertificate that the smartphone used to connect.  This is the
+SelfDevID.
 
-At this point the AR has validated the identity of the smartpledge, and the
+At this point the AR has validated the identity of the smartphone, and the
 AR moves it's end of the connection from provisional to validated.
 
 ## Adolescent Registrar (AR) grows up
 
-The roles are now slightly changed.  The AR generates a new key pair as it's
-Domain CA key.  It MAY generate intermediate CA certificates and a seperate
-Registrar certificate, but this is discouraged for home network use.
+The roles are now changed.
 
-The AR is now considered a full registrar.
+If necessary, the AR generates a new key pair as it's Domain CA key.  It MAY
+generate intermediate CA certificates and a seperate Registrar certificate,
+but this is discouraged for home network use.
 
-## Smartpledge enrolls
+The AR is now considered a full registrar.  The AR now takes on the role
+of Registrar.
 
-The smartpledge MUST now request the full list of CA Certificates, as
+## Smartphone enrolls
+
+At this stage of the smarkaklink protocol, the typical BRSKI exchange is
+over.  A Secure Transport has been established between the smartphone
+and the fully-grown AR.  The smartphone now takes on the role of
+secured pledge,  or EST client.
+
+The smartphone MUST now request the full list of CA Certificates, as
 per {{RFC7030}} section 4.1.  As the Registrar's CA certificate has just been
-generated, the smartpledge has no other way of knowing it.
+generated, the smartphone has no other way of knowing it.
 
-The smartpledge MUST now also generate a CSR request as per
+The smartphone MUST now also generate a CSR request as per
 {{I-D.ietf-anima-bootstrapping-keyinfra}} section 5.8.3.
 The smartpledge MAY reuse the SelfDevID key pair for this purpose.
-(XXX - maybe there are good reasons not to reuse)
+(XXX - maybe there are good reasons not to reuse?)
 
-The Registrar SHOULD grant administrator privileges to the smartpledge via
+The Registrar SHOULD grant administrator privileges to the smartphone via
 the certificate that is issued.  This may be done via special attributes in
-the issued certificate, or it may pin the certificate into a database.
+the issued certificate, or it may pin the certificate in a database.
 Which method to use is a local matter.
 
-The EST connection MUST remain open at this point.
+The TLS/EST connection MUST remain open at this point. This is connection one.
 
 ## Validation of connection
 
-The smartpledge MUST now open a new HTTPS connection to the Registrar (AR),
+The smartphone MUST now open a new HTTPS connection to the Registrar (AR),
 using it's newly issued certificate. (XXX should this be on a different IP, or a
 different port?  If so, how is this indicated?)
 
-The smartpledge MUST validate that the new connection has a certificate
-that is validated by the Registrar's new CA certificate.
+The smartphone MUST validate that the new connection's TLS Server
+certificate can be validated by the Registrar's new CA certificate.
 
-The registrar MUST validate that the smartpledge's ClientCertificate is
-validated by the Registrar's CA.  The smartpledge SHOULD perform a POST
+The registrar MUST validate that the smartphone's ClientCertificate is
+validated by the Registrar's CA.  The smartphone SHOULD perform a POST
 operation on this new connection to the
 {{I-D.ietf-anima-bootstrapping-keyinfra}} Enrollment Status Telemetry
-mechanism, see section 5.8.3.  The EST connection MAY not be closed.
+mechanism, see section 5.8.3.
+
+Upon success, the original TLS/EST connection (one) MAY now be closed.
 
 Should the validations above fail, then the original EST connection MUST be
 used to GET a value from the
 
     /.well-known/est/enrollstatus
 
-from the Registrar.  The contents of this value SHOULD then be send to the
+from the Registrar.  The contents of this value SHOULD then be sent to the
 MASA, using a POST to the enrollstatus, and including the reply from the AR
 in a new attribute, "adolescent-registrar-reason".
 
@@ -496,13 +541,13 @@ using current smartphone operating systems in an unprivileged way.
 ### The Smarkaklink Attribute
 
 The *smarkaklink* attribute indicates that the device is capable of the
-protocol specified in this document.  The contents of the smartpledge
+protocol specified in this document.  The contents of the smarkaklink
 attribute contains part or all of an IRI which identifies the
 manufacturer of the device.
 
 It SHOULD contain the _iauthority_ of an IRI as specified in section 2.2 of
 {{RFC3987}}. The scheme is implicitely "https://", with an ipath of
-"/.well-known/est/smartpledge".  This implicit form exists to save bytes in
+"/.well-known/est/smarkaklink".  This implicit form exists to save bytes in
 the QR code.
 
 If the string contains any "/" characters, then it is not an _iauthority_,
@@ -522,28 +567,9 @@ implemented {{RFC7217}} stable addresses can express that address clearly.
 
 ### ESSID Name Attribute
 
-The *essid* attribute provides the name of the 802.11 network to which the
-*smartpledge* SHOULD join in order to reach the AR.  If this attribute is
+The *essid* attribute provides the name of the 802.11 network on
+which the enrollment will occur.  If this attribute is
 absent, then it defaults to "BRSKI".
-
-## Artifacts
-
-### Voucher-Request Challenge
-
-The smartpledge generates a random nonce _SPnonce_.  To this is adds
-SOMETHING-that-is-time-unique, to create a *voucher-request challenge*.
-This is placed in the voucher-challenge-nonce field.
-
-Using the public-key of the AR that was scanned from the QR code,
-the smartpledge encrypts the challenge using CMS (or COSE?).
-
-### Additions to Voucher-Request
-
-QUESTION: should the *voucher-challenge-nonce* be provided directly in the
-voucher-request, or should only a hash of the nonce be used?  The nonce is
-otherwise not disclosed, and a MITM on the initial TLS connection would
-get to see the nonce.  A hash of the nonce validates the nonce as easily.
-
 
 ## Enrollment using EST
 
@@ -551,17 +577,18 @@ TBD
 
 # Smart Pledge enrollment with manufacturer {#smartpledgeenroll}
 
-It is assumed that there will be many makers of Smart Pledge applications.
-A goal of this specification is to eliminate the need for an "app" per
-device, providing onboarding mechanism for a variety of devices from a single app.
+While it is assumed that there will be many makers of Smarkaklink
+applications, a goal of this specification is to eliminate the need for an
+"app" per device, providing onboarding mechanism for a variety of devices
+from a single app.
 
 Given the secondary goal of a transition to use of Device Provisioning
-Protocol (DPP), the Smart Pledge application may have to be provided as part of the
-smart phone system, as a system service. This is due to the need to
-send/receive wifi management frames from DPP.  As such each vendor of smart
-device will need to produce a SmartPledge app, and it will be impossible for
-the vendor of the Registrar device (or other DPP capable IoT device) to
-provide an app on their own.
+Protocol (DPP), the smarkaklink application may have to be provided as part
+of the smart phone system, as a system service. This is due to the need to
+send/receive wifi management frames from DPP.  As such each vendor of
+a smart device will need to produce a smarkaklink app, and it will be
+impossible for the vendor of the Registrar device (or other DPP capable IoT
+device) to provide an app on their own.
 
 Having stated this goal, it is understood that initially the app may well
 come from the manufacturer of the Registrar, but this protocol is designed on
@@ -591,7 +618,7 @@ of the app, or it could be signed by another party.
   additional relevance, unless the third party is the manufacturer of the
   Registrar!
 
-The SmartPledge enrollment process uses a combination of the first and third
+The smarkaklink enrollment process uses a combination of the first and third
 choice.  The involvement of the manufacturer at this step affords an
 opporuntity to do sales-channel integration with the manufacturer.  The
 manufacturer can associate an account with the user using a wide variety of
@@ -606,7 +633,7 @@ interesting at all, and the process of attempting to come up with a
 meaningful contents tends to cause more interoperability issues than having
 nothing.
 
-The SmartPledge takes the *smartpledge attribute* from the QR code, forming a
+The Smarkaklink takes the *smartpledge attribute* from the QR code, forming a
 URL as describe above.  An HTTPS POST is performed to this URL, with the JSON
 body of:
 
@@ -615,12 +642,12 @@ body of:
     }
 
 The HTTPS POST MUST be performed with freshly created self-signed
-certificate.  If the SmartPledge application has previously communicated with
+certificate.  If the smarkaklink application has previously communicated with
 this URL, it MAY skip this step and use a previously returned certificate.
 Doing so has a privacy implication discussed below, but is appropriate when
 enrolling many devices from the same manufacturer into the same network.
 
-The SmartPledge client should be prepared for three cases:
+The smarkaklink client should be prepared for three cases:
 
 * A certificate is immediately returned.
 * A 201 status code is returned, and Location: header is provided. A GET
@@ -629,10 +656,9 @@ The SmartPledge client should be prepared for three cases:
   establish some additional authorization.
 * Any other error (4xx and 5xx) are typically unrecoverable errors.
 
-In the third case, the 302 response SHOULD take the SmartPledge operator to
-the given URL
-in an interactive browser.  The operator SHOULD be given access to their
-normal set of cookies and third-party logins such that they can use
+In the third case, the 302 response SHOULD take the smarkaklink operator to
+the given URL in an interactive browser.  The operator SHOULD be given access
+to their normal set of cookies and third-party logins such that they can use
 appropriate third party (Google, Facebook, Github, Live.com, etc.) logins to
 help validate the operator as a real person, and not a malware.
 Such logins are optional, and it is a manufacturer choice as to what
@@ -644,9 +670,8 @@ and a 201 status code will be returned when successful as above.
 ## minimal Smart Pledge enrollment
 
 A manufacturer who has not built-in any restrictions on the identity that the
-smartpledge that enrolls MAY return the same self-signed certificate that the
+smarkaklink uses, MAY return the same self-signed certificate that the
 smartpledge used to connect with.
-
 
 # Threat Analysis
 
@@ -680,7 +705,7 @@ by an attacker to push the WPA and/or factory reset button on the router.
 
 # Security Considerations
 
-Go through the list of attacks above, and explain how each has been
+XXX: Go through the list of attacks above, and explain how each has been
 mitigated.
 
 Go through the list of concerns in ANIMA and EST-RFC7030 and indicate if
@@ -727,7 +752,8 @@ of {{dpp}}:
 
 # Swagger.IO definition of API
 
-This is a definition of the smartpledge to MASA API in the form of Swagger.IO format:
+This is a work-in-progress definition of the smarkaklink to MASA API in the
+form of Swagger.IO format:
 
 <figure>
 INSERT_TEXT_FROM_FILE smartpledge-swagger.yaml END
