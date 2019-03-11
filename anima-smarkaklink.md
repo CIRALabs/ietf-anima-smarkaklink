@@ -1,7 +1,7 @@
 ---
-title: BRSKI enrollment for Smart Pledges
-abbrev: SmartPledge
-docname: draft-richardson-anima-smartpledge-01
+title: BRSKI enrollment of with disconnected Registrars -- smarkaklink
+abbrev: Smarkaklink
+docname: draft-richardson-anima-smarkaklink-00
 
 # stand_alone: true
 
@@ -59,8 +59,8 @@ informative:
 
 --- abstract
 
-This document details the mechanism used for initial enrollment by
-a smartphone into a BRSKI based enrollment system.
+This document details the mechanism used for initial enrollment
+using a smartphone of a BRSKI Registrar system.
 
 There are two key differences in assumption from
 {{I-D.ietf-anima-bootstrapping-keyinfra}}: that the intended registrar has
@@ -80,20 +80,20 @@ The problem of bootstrapping a new device is described at length in
 {{I-D.ietf-anima-bootstrapping-keyinfra}} (aka BRSKI).  The problem that BRSKI
 solves is the case of a smart, properly configured network with a minimum of
 network connectivity (or previously pre-previoned with nonceless vouchers),
-and a relatively stupid new device (the Pledge), which lacks a network
+and a relatively stupid new device (the Pledge), which lacks a user
 interface.
 
 The BRSKI problem is one of trust: how does the new device trust that it has
 found the correct network to join, and how does the new network become
 convinced that the new device is a device that is intended to join.
 BRSKI solves the problem well for the case where the network is well
-connected and easily talk to the device's Manufacturer Authorized Signing
+connected and can easily talk to the device's Manufacturer Authorized Signing
 Authority (MASA), while providing appropriate proxy mechanisms to enable the
 new pledge to communicate it's proximity assertion to the MASA as well.
 
 This document is about a variation of the problem: when the new device being
 introduce has no network connectivity, but a new device is intended to
-serve as the Registrar for the network.  This new device is likely a home (or
+serve as the Registrar for the network. This new device is likely a home (or
 small office) gateway, and until it is properly configured there will be
 no direct network connectivity.
 
@@ -105,39 +105,61 @@ the device in this way.  This document is not about the situation where
 the router device is intended to belong to the ISP, but about the situation
 where the home user intends to own and control the device.
 
+## Intermittent Device connectivity
+
+There is an additional variation which this variation solves: the case where
+there is one or more devices in a place with no immediate connectivity to a
+Registrar.   An example of this could be a new home construction where a
+furnace, thermostat or other control systems need to be introduced to each
+other.  If a registrar exists it will have no Internet connectivity (as
+above), until the home becomes owned by the first owner.  There might never
+be a registrar though.
+
+The basement case is important because the assumption is that the *installer*
+may have poor or no LTE connectivity in that location.  The installer will
+have to exit the basement, perhaps even return to their truck, in order to
+have network connectivity for their provisioning device (a smartphone
+equivalent).
+
 ## Additional Motivation
 
 The Wi-Fi Alliance has released the Device Provisioning Protocol {{dpp}}.
-The specification is not public.  The specification relies on being able to
-send and receive 802.11 Public Action frames, as well as Generic
-Advertisement Service (GAS) Public Action frames.  Access to send new layer-2
-frames is generally restricted in most smartphone operating systems (iOS,
-Android). At present there are no known public APIs that a generic
-application writer could use, and therefore the smart-phone side of the DPP
-can only be implemented at present by the vendors of those operating systems.
+The specification is available only via "free" registation.
+The specification relies on being able to send and receive 802.11 Public
+Action frames, as well as Generic Advertisement Service (GAS) Public Action
+frames.  Access to send new layer-2 frames is generally restricted in most
+smartphone operating systems (iOS, Android). At present there are no known
+public APIs that a generic application writer could use, and therefore the
+smart-phone side of the DPP can only be implemented at present by the vendors
+of those operating systems.
 
 As both dominant vendors have competing proprietary mechanisms, it is unclear
-if generic applications will be produced soon.  It is there impossible for a
-vendor an a smart-appliance to independantly produce an application that can
-do proper DPP in 2018.
+if generic applications will be produced soon.  It is probably impractical
+for a vendor an a smart-appliance to independantly produce an application
+that can do proper DPP in 2019.  As one of the common goals of this document
+and DPP is that there need not be an application-per-device only one DPP
+application need exist.  Until such time as such an application becomes
+universal it is a goal of this document to lay the groundwork for a
+transition to full use of DPP by leveraging the QR code infrastructure
+that DPP depends upon.
 
 In addition to the above concern, DPP is primary concerned about provisioning
-WiFi credentials to devices.  It assumes that the WiFi Access Point is
-already provisioned and functioning correctly.
+WiFi credentials to devices.  DPP can provision access points themselves, but
+it lacks any kind of manufacturer integration.  BRSKI provides this
+integration, and therefore an audit trail history for the device.
 
-The smartpledge enrollment described in this document is about securely
-initializing the administrative connection with a device that is the WiFi
-Access Point.
+The smarkaklink enrollment process described in this document is about
+securely initializing the administrative connection with a device that is the
+WiFi Access Point.
 
 # Terminology          {#Terminology}
 
 The following terminology is copied from {{I-D.ietf-anima-bootstrapping-keyinfra}}
 
-enrollment:
-: The process where a device presents key material to a network and acquires a
-network specific identity. For example when a certificate signing request is presented to a
-certification authority and a certificate is obtained in
-response.
+enrollment: The process where a device presents key material to a network and
+acquires a network specific identity. For example when a certificate signing
+request is presented to a certification authority and a certificate is
+obtained in response.
 
 pledge:
 : The prospective device, which has an identity installed at the factory.
@@ -172,6 +194,25 @@ at the factory, and stored in the configuration portion of the firmware.  The
 public portion is printed in a QRcode.  This key is not formed into a
 certificate of any kind.
 
+smarkaklink: the name of this protocol.
+
+adolescent router (AR): a home router or device containing a registrar. The
+device does not yet have network connectivity, and has no administrator.
+
+## History and Origin of the name
+
+This document was originally called the "smartpledge" variation of BRSKI.
+This name was intended to indicate that the variation is one where the
+BRSKI role of Pledge is taken on by the smartphone device.
+
+While the end-goal is to have the smartphone enrolled into a PKI hosted
+by the fully-grown Router, the activities of each device do not map
+into the BRSKI roles at the beginning.  In fact, they are reversed
+with the Adolescent Router being the Pledge.  Review of this document
+suggested that removing the word pledge would help.
+
+The new name "smarkaklink" is intended to sound like the sound that
+two (wine, beer) glasses make after a toast is made.
 
 # Requirements Language {#rfc2119}
 
@@ -436,10 +477,10 @@ follows:
     dpp-qr = “DPP:” [channel-list “;”] [channel-list “;”]
              [mac “;”] [information “;”] public-key
              [";" llv6-addr ] [";" mudurl ]
-             [";" smartpledge ] [";" essid ] “;;”
+             [";" smarkaklink ] [";" essid ] “;;”
     llv6-addr = "L:" 8*hex-octet
     essid     = "E:" *(%x20-3A / %x3C-7E) ;   semicolon not allowed
-    smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    smarkaklink = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
     mudurl      = "D:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
 
 While the ABNF defined in the {{dpp}} document assumes a specific order
@@ -452,9 +493,9 @@ It is intended that parts of this protocol could be performed by
 an actual DPP implementation, should it become possible to implement DPP
 using current smartphone operating systems in an unprivileged way.
 
-### The SmartPledge Attribute
+### The Smarkaklink Attribute
 
-The *smartpledge attribute* indicates that the device is capable of the
+The *smarkaklink* attribute indicates that the device is capable of the
 protocol specified in this document.  The contents of the smartpledge
 attribute contains part or all of an IRI which identifies the
 manufacturer of the device.
@@ -663,10 +704,10 @@ of {{dpp}}:
 
     dpp-qr = “DPP:” [channel-list “;”]
              [";" llv6-addr ] [";" mudurl ]
-             [";" smartpledge ] [";" essid ] “;;”
+             [";" smarkaklink ] [";" essid ] “;;”
     llv6-addr = "L:" 8*hex-octet
     essid     = "E:" *(%x20-3A / %x3C-7E) ;   semicolon not allowed
-    smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    smarkaklink = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
     mudurl      = "D:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
     pkex-bootstrap-info = [information]
     channel-list = “C:” class-and-channels *(“,” class-and-channels)
