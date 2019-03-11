@@ -149,7 +149,7 @@ at the factory. This is the 802.1AR artifact which is mandated by
 
 The following new terminology has been added
 
-smartpledge:
+smarkaphone:
 : The prospective administrator device, usually a smartphone equipped with a
 QR capable camera, wifi and 3G connectivity.
 
@@ -435,16 +435,18 @@ follows:
 
     dpp-qr = “DPP:” [channel-list “;”] [channel-list “;”]
              [mac “;”] [information “;”] public-key
-             [";" llv6-addr ] [";" smartpledge ] [";" essid ] “;;”
+             [";" llv6-addr ] [";" mudurl ]
+             [";" smartpledge ] [";" essid ] “;;”
     llv6-addr = "L:" 8*hex-octet
-    essid     = "E:" *(%x21-3A / %x3C-7E) ; semicolon not allowed
+    essid     = "E:" *(%x20-3A / %x3C-7E) ;   semicolon not allowed
     smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    mudurl      = "D:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
 
 While the ABNF defined in the {{dpp}} document assumes a specific order
-(C:, M:, I:, K:) the tags can come in any order.   However,
-in order to make interoperation with future DPP-only clients
-as seamless as possible, the extensions suggested here are placed at the end
-of the list.  This is consistent with the Postel Principle.
+(C:, M:, I:, K:), this specification relaxes this so that the tags can come
+in any order.   However, in order to make interoperation with future DPP-only
+clients as seamless as possible, the extensions suggested here are placed at
+the end of the list.  This is consistent with the Postel Principle.
 
 It is intended that parts of this protocol could be performed by
 an actual DPP implementation, should it become possible to implement DPP
@@ -660,8 +662,12 @@ This is a merge of the additions from section {{qrextra}} and section 5.2.1
 of {{dpp}}:
 
     dpp-qr = “DPP:” [channel-list “;”]
-             [mac “;”] [information “;”] public-key
-             [";" llv6-addr ] [";" smartpledge ] [";" essid ] “;;”
+             [";" llv6-addr ] [";" mudurl ]
+             [";" smartpledge ] [";" essid ] “;;”
+    llv6-addr = "L:" 8*hex-octet
+    essid     = "E:" *(%x20-3A / %x3C-7E) ;   semicolon not allowed
+    smartpledge = "S:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
+    mudurl      = "D:" *(%x20-3A / %x3C-7E) ; semicolon not allowed
     pkex-bootstrap-info = [information]
     channel-list = “C:” class-and-channels *(“,” class-and-channels)
     class-and-channels = class “/” channel *(“,” channel)

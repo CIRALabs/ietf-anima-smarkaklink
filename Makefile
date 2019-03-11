@@ -1,4 +1,4 @@
-DRAFT:=anima-smartpledge
+DRAFT:=anima-smarkaklink
 VERSION:=$(shell ./getver ${DRAFT}.md )
 
 ${DRAFT}-${VERSION}.txt: ${DRAFT}.txt
