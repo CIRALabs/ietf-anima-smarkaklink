@@ -1,3 +1,3 @@
 qrcode.png: Makefile
-	qrencode -s 10 -o qrcode.png http://www.ieee1904.org/events/2014_06_workshop/s2_alter_access.pdf
+	qrencode -s 10 -o qrcode.png https://www.sandelman.ca/SSW/ietf/anima/smarkaklink/ietf104_smarkaklink/ietf104_smarkaklink.html
 
