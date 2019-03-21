@@ -1,2 +1,3 @@
 qrcode.png: Makefile
-	qrencode -s 10 -o qrcode.png https://www.sandelman.ca/SSW/ietf/anima/smartpledge/ietf103_smartpledge/ietf103_smartpledge.html
+	qrencode -s 10 -o qrcode.png http://www.ieee1904.org/events/2014_06_workshop/s2_alter_access.pdf
+

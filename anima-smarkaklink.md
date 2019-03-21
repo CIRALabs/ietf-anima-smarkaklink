@@ -1,7 +1,7 @@
 ---
 title: BRSKI enrollment of with disconnected Registrars -- smarkaklink
 abbrev: Smarkaklink
-docname: draft-richardson-anima-smarkaklink-00
+docname: draft-richardson-anima-smarkaklink-01
 
 # stand_alone: true
 
@@ -29,11 +29,6 @@ author:
   name: Jacques Latour
   org: CIRA Labs
   email: Jacques.Latour@cira.ca
-
-- ins: F. Khan
-  name: Faud Khan
-  org: Twelve Dot Systems
-  email: faud.khan@twelvedot.com
 
 - ins: A. Joshi
   name: Abhishek Joshi
