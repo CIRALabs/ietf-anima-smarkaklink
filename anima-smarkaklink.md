@@ -318,12 +318,20 @@ The Adolescent Registrar acts in the role of pledge!
 
 ## Pledge Requests Voucher-Request from the Adolescent Registrar
 
-The smartphone generates a random nonce _SPnonce_.  To this is added
-SOMETHING-that-is-time-unique, to create a *voucher-request challenge*.
+The smartphone generates a random nonce _SPnonce_.
+(Do we need something time-based too here?)
+
+The smarkaklink client encrypts this to the public key of the
+AR, which was found in the QR code.  If the key is RSA, this is a
+simple public key operation (we need to reference appropriate padding due to
+various attacks).  In the mandatory to implement ECDSA case, then ECIES is
+used instead.
+
+The result goes into the Voucher-Request-Request, posted as a JSON
+containing a single field: *voucher-request challenge*.
 This is placed in the voucher-challenge-nonce field.
 
-Using the public-key of the AR that was scanned from the QR code,
-the smartphone encrypts the challenge using CMS (or COSE?).
+(XXX-should be done with JOSE? Probably)
 
 NOTE: DPP has a round with the SHA256 of the device's key to make sure that
 the correct device has been chosen.  The TLS connection effectively provides
