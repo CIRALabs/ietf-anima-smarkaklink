@@ -1,0 +1,120 @@
+msc {
+	hscale=2;
+
+	# Our entities involved in the process
+	user, phone, AR, manufacturer, MASA;
+
+	|||;
+
+	--- [label = "Intial boot"];
+	user => phone [label = "Launch smarkaklink app"];
+	phone => phone [label = "Generate SelfDevId"];
+
+	|||;
+
+	--- [label = "Scan the QRCode"];
+	user => phone [label = "Scan AR's QR Code"];
+	phone => phone [label = "Retrieve public part of QRkey, Smarkaklink URL and IPv6 LL"];
+
+	|||;
+
+	--- [label = "Enroll with the manufacturer"];
+	phone => manufacturer [label = "POST <Smarkaklink URL>, body={\"cert\": Base64(SelfDevId)}"];
+	manufacturer => phone [label = "201 <Manufacturer-signed certificate>"];
+
+	|||;
+
+	--- [label = "Connect to BRSKI join network"];
+	phone => phone [label = "Connect to AR wifi"];
+
+	|||;
+
+	--- [label = "Connect to AR"];
+	phone => AR [label = "Create TLS connection, TLS ClientCert=SelfDevId, TLS ServerCert=IdDevId, port=8443"];
+	# AS: Implies that phone can validate IdDevId?
+	
+	|||;
+
+	--- [label = "Pledge Requests Voucher-Request from the Adolescent Registrar"];
+	phone => phone [label = "Generate SPnonce"];
+	phone => phone [label = "Encrypt it to public key from QR code"];
+	phone => AR [label = "POST /.well-known/est/requestvoucherrequest, body={\"voucher-request challenge\": {\"voucher-challenge-nonce\": <Encrypted SPnonce>}}"];
+	# AS: + LL of phone?
+
+	|||;
+
+	--- [label = "AR processing of voucher-request request"];
+	--- [label = "shg_mud_supervisor#2"];
+	AR => AR [label = "Decrypt voucher-request request"];
+	AR => AR [label = "Validate that LL included (AS: where?) is same as TLS connection"];
+	AR => AR [label = "Create voucher-request, including SPnonce in \"voucher-challenge-nonce\" field"];
+	AR => AR [label = "Sign voucher-request with IDevId"];
+	AR => phone [label = "Return voucher-request in POST response"];
+
+	|||;
+
+	--- [label = "Smartphone validates connection"];
+	--- [label = "shg_reach#3"];
+	phone => phone [label = "Check signature of voucher-request (same as TLS ServerCert connection for previous POST request)"];
+	phone => phone [label = "Validate \"voucher-challenge-nonce\""];
+	phone => phone [label = "Update connection provisional -> validated"];
+
+	|||;
+
+	--- [label = "Smart-Phone connects to MASA"];
+	phone => phone [label = "Connect to Internet-available network"];
+	phone => phone [label = "Retrieve MASA URL from AR's TLS ServerCert"];
+	phone => phone [label = "Create voucher-request by wrapping the returned voucher-request from AR in field \"prior-signed-voucher-request\""];
+	phone => phone [label = "Set voucher-request's \"proximity-registrar-cert\" to SelfDevId"];
+	phone => phone [label = "Sign voucher-request with SelfDevId"];
+	phone => MASA [label = "POST <MASA URL>/.well-known/est/requestvoucher"];
+
+	|||;
+
+	--- [label = "MASA processing"];
+	--- [label = "shg_highway#5"];
+	MASA => MASA [label = "Generate voucher"];
+	MASA => MASA [label = "Copy \"voucher-challenge-nonce\" (AS: which one? What's its use?) in generated voucher"];
+	MASA => phone [label = "Return voucher in POST response"];
+
+	|||;
+
+	--- [label = "Smartpledge processing of voucher"];
+	--- [label = "shg_reach#2"];
+	phone => phone [label = "Connect to AR ESSID"];
+	phone => phone [label = "Validate signature on received voucher"];
+	phone => AR [label = "POST /.well-known/est/voucher, body=voucher"];
+
+	|||;
+
+	--- [label = "AR receives voucher"];
+	--- [label = "shg_mud_supervisor#7"];
+	AR => AR [label = "Validate voucher signed by manufacturer (voucher is signed by MASA)"];
+	AR => AR [label = "\"pinned-domain-cert\" matches phone's TLS ClientCert"];
+	AR => AR [label = "Update connection provisional -> validated"];
+	AR => phone [label = "Telemetry in case of validation error"];
+
+	|||;
+
+	--- [label = "Phone reports to MASA"];
+	--- [label = "shg_reach#5"];
+	--- [label = "shg_highway#6"];
+	phone => MASA [label = "POST /.well-known/est/enrollstatus"];
+	MASA >> phone [label = "200"];
+
+	|||;
+
+	--- [label = "Adolescent Registrar (AR) grows up"];
+	--- [label = "shg_mud_supervisor#8"];
+	AR => AR [label = "Generate new key pair as Domain CA (if it does not exist)"];
+
+	|||;
+
+	--- [label = "Smartphone enrolls"];
+	phone => AR [label = "GET /.well-known/est/cacerts"];
+	AR => phone [label = "Return list of CA certificates"];
+	phone => phone [label = "Generate CSR, using SelfDevId"];
+	phone => AR [label = "POST /.well-known/est/simpleenroll, body=<PKCS #10 Certification Request>"];
+	AR => phone [label = "Return new signed certificate"];
+
+}
