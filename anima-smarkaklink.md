@@ -1,7 +1,7 @@
 ---
 title: BRSKI enrollment of with disconnected Registrars -- smarkaklink
 abbrev: Smarkaklink
-docname: draft-richardson-anima-smarkaklink-01
+docname: draft-richardson-anima-smarkaklink-02
 
 # stand_alone: true
 
@@ -460,6 +460,16 @@ but this is discouraged for home network use.
 The AR is now considered a full registrar.  The AR now takes on the role
 of Registrar.
 
+## Enrollment status
+
+The AR responds to the POST of the voucher with the enrollment status as the
+reply to the POST, as per the enrollment status object defined in BRSKI
+5.6.3. (XXX)
+
+The smartphone should POST the resulting enrollment status to the MASA,
+as per BRSKI 5.6.3.
+
+
 ## Smartphone enrolls
 
 At this stage of the smarkaklink protocol, the typical BRSKI exchange is
@@ -499,15 +509,6 @@ operation on this new connection to the
 mechanism, see section 5.8.3.
 
 Upon success, the original TLS/EST connection (one) MAY now be closed.
-
-Should the validations above fail, then the original EST connection MUST be
-used to GET a value from the
-
-    /.well-known/est/enrollstatus
-
-from the Registrar.  The contents of this value SHOULD then be sent to the
-MASA, using a POST to the enrollstatus, and including the reply from the AR
-in a new attribute, "adolescent-registrar-reason".
 
 # Protocol Details
 
