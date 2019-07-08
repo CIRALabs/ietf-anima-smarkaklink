@@ -30,10 +30,10 @@ author:
   org: CIRA Labs
   email: Jacques.Latour@cira.ca
 
-- ins: A. Joshi
-  name: Abhishek Joshi
-  org: Twelve Dot Systems
-  email: abhishek.joshi@twelvedot.com
+- ins: A. Schiltkneckt
+  name: Audric Schiltkneckt
+  org: Viagenie
+  email: audric.schiltknecht@viagenie.ca
 
 normative:
   RFC2119:
@@ -279,6 +279,28 @@ to enroll.  After that process, a redirection will occur using OAUTH2.
 The result should finally be a 201 result code, and at that URL is a new
 certificate signed by the manufacturer.
 
+## Gather name details for new device
+
+The contents of the scanned QR code may some necessary information
+to facilititate the connection.  After enrolling with the manufacturer,
+the smartphone makes a request to the manufacturer to get more details.
+
+A POST request is made containing the public key of the device.
+The public key is used as an index, and this MAY result in a literal reply,
+or may result in an HTTP 201 response with a Location: header where
+details on the device may be obtained.
+
+The final result is a JSON object that provides additional details about the
+device.  At present, a key detail that does not fit into the QR code
+is the full certificate distinguished name that the device will respond with.
+
+This is the Adolescent Router Fully Qualified Domain Name, or AD-FQDN.
+
+Additionally, if the device does not have a certificate that has a public
+WebPKI anchor, then the manufacturer will include an appropriate trust
+anchor with which to validate the device.  If the device has a self-signed
+certificate, then it may be returned.
+
 ## Connect to BRSKI join network
 
 The application then reconnects the Wi-Fi interface of the smartphone to the
@@ -299,9 +321,11 @@ Receipt of an answer confirms that the ESSID is correct and present.
 ## Connect to Adolescent Registrar (AR)
 
 The smarkaklink application then makes a direct (no proxy) TLS connection to
-port 8443 (!XXX!) of the AR, on the IPv6 Link-Local address given.  This is
-as in section 5.1 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.   The
-smartphone uses it's SelfDevID as the TLS ClientCertificate, as the
+port 8081 (!To be confirmed!) of the AR, on the IPv6 Link-Local address
+given.
+
+This is as in section 5.1 of {{I-D.ietf-anima-bootstrapping-keyinfra}}.
+The smartphone uses it's SelfDevID as the TLS ClientCertificate, as the
 smartphone and smarkaklink will not have a manufacturer signed IDevID.
 
 Additionally, the AR will use it's IDevID certificate as the
@@ -309,7 +333,18 @@ ServerCertificate of the TLS conncetion.  As with other BRSKI IDevID,
 it will have a MASA URL extension, as described in
 {{I-D.ietf-anima-bootstrapping-keyinfra}} section 2.3.2.
 
-The Adolescent Registrar acts in the role of pledge!
+The Adolescent Registrar is acting here in the role of pledge.
+
+Given typical libraries, the connection will be made initially with
+all TLS peer name validation turned off, as the connection will not be to an
+IPv6 Link-Local address, which can not be placed into a certificate.
+The certificate should still be verified if possible up to a public trust
+anchor.
+
+After connecting, the certificate presented by the AR MUST contain the
+AR-FQDN provided above as a subjectAltName rfc822Name extension.
+
+Alternatively, a custom certification verification call back may be made.
 
 ## Pledge Requests Voucher-Request from the Adolescent Registrar
 
