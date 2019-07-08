@@ -1,7 +1,7 @@
 ---
 title: BRSKI enrollment of with disconnected Registrars -- smarkaklink
 abbrev: Smarkaklink
-docname: draft-richardson-anima-smarkaklink-03
+docname: draft-richardson-anima-smarkaklink-01
 
 # stand_alone: true
 
