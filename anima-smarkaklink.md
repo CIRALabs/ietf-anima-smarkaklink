@@ -464,11 +464,25 @@ of Registrar.
 
 The AR responds to the POST of the voucher with the enrollment status as the
 reply to the POST, as per the enrollment status object defined in BRSKI
-5.6.3. (XXX)
+section 5.9.4.
 
-The smartphone should POST the resulting enrollment status to the MASA,
-as per BRSKI 5.6.3.
+The smartphone MAY POST the resulting enrollment status to the MASA,
+in a manner similar to BRSKI section 5.9.4. Note that the operation described
+in that section is about telemetry from the pledge to the Registrar.
+That telemetry was return as part of the POST above.
 
+Returning enrollment status to the MASA is an optional action; while there are
+privacy implications of doing so, the logicstics feedback of a failure likely
+will result in a service technician visit, which is hardly privacy enhancing.
+This telemetry return is strongly encouraged.
+
+The POST to /.well-known/est/enrollstatus MUST include some additional
+information to tell the MASA which device was involved.  This section
+therefore defines a new element for the status return to be the "voucher"
+attribute; it is to be filled in with the base64 encoding of the voucher that
+was provided.  While this is excessive, it discloses no information that the
+MASA does not already have, has been signed and identifies both the
+Adolescent Router and the Smart Phone client involved.
 
 ## Smartphone enrolls
 
