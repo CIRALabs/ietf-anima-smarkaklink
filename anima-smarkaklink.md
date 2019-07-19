@@ -346,7 +346,7 @@ AR-FQDN provided above as a subjectAltName rfc822Name extension.
 
 Alternatively, a custom certification verification call back may be made.
 
-## Pledge Requests Voucher-Request from the Adolescent Registrar
+## Smartphone Requests Voucher-Request from the Adolescent Registrar
 
 The smartphone generates a random nonce _SPnonce_.
 (Do we need something time-based too here?)
