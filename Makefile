@@ -1,7 +1,7 @@
 DRAFT:=anima-smarkaklink
 VERSION:=$(shell ./getver ${DRAFT}.md )
 
-${DRAFT}-${VERSION}.txt: ${DRAFT}.txt
+${DRAFT}-${VERSION}.txt: ${DRAFT}.txt anima-smarkaklink-flowchart.png
 	cp ${DRAFT}.txt ${DRAFT}-${VERSION}.txt
 	: git add ${DRAFT}-${VERSION}.txt ${DRAFT}.txt
 
@@ -17,6 +17,9 @@ ${DRAFT}-${VERSION}.txt: ${DRAFT}.txt
 
 submit: ${DRAFT}.xml
 	curl -S -F "user=mcr+ietf@sandelman.ca" -F "xml=@${DRAFT}.xml" https://datatracker.ietf.org/api/submit
+
+anima-smarkaklink-flowchart.png: anima-smarkaklink-flowchart.msc
+	mscgen -T png anima-smarkaklink-flowchart.msc
 
 version:
 	echo Version: ${VERSION}
